@@ -1,0 +1,37 @@
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REPONAME: ${{ github.event.repository.name }}
+  WORKSPACE: ${{ github.workspace }}
+  CF_USERNAME: ${{ secrets.USERNAME}}
+  CF_PASSWORD: ${{secrets.PASSWORD}}
+  CF_ORG_NAME: ${{ secrets.ORG_NAME}}
+  CF_SPACE_ID: ${{secrets.SPACE_ID}}
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+          
+      - name: Print terraform version
+        run: terraform version
+
+      - name: Initalize Terraform
+        run: terraform init
+
+      - name: terraform plan
+        run: terraform plan -var="org_name=${{secrets.ORG_NAME}}" -var="username=${{secrets.USERNAME}}" -var="password=${{secrets.PASSWORD}}" -var="space_id=${{secrets.SPACE_ID}}" -out=tfplan
+
+      - name: terraform apply
+        run: terraform apply -auto-approve "tfplan"
